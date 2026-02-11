@@ -1,0 +1,42 @@
+import OpenAI from "openai";
+
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    //handle CORS preflight request
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    // only process POST requests
+
+    if (request.method !== 'POST') {
+      return new Response(JSON.stringify({error: 'Only POST requests are allowed'}), { status: 405, headers: corsHeaders });
+    }
+    
+    const openai = new OpenAI({
+      apiKey: env.OPENAI_API_KEY,
+      baseURL: 'https://gateway.ai.cloudflare.com/v1/7d4b16529b35b4454f5e04eaa3dab046/stock-predictions/openai'
+    });
+        
+    try {
+        const messages = await request.json();
+        const chatCompletion = await openai.chat.completions.create({
+        model: 'gpt-5-nano',
+        messages: messages,
+        presence_penalty: 0,
+        frequency_penalty: 0
+      });
+      const response = chatCompletion.choices[0].message;
+      
+      return new Response(JSON.stringify(response), { headers: corsHeaders });
+    } catch(e) {
+      return new Response(JSON.stringify({error: e.message}), { status: 500, headers: corsHeaders });
+    }
+  },
+};
