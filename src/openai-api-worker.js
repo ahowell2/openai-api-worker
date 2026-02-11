@@ -16,7 +16,7 @@ export default {
     // only process POST requests
 
     if (request.method !== 'POST') {
-      return new Response(JSON.stringify({error: 'Only POST requests are allowed'}), { status: 405, headers: corsHeaders });
+      return new Response(JSON.stringify({error: 'Only POST requests are allowed.'}), { status: 405, headers: corsHeaders });
     }
     
     const openai = new OpenAI({
